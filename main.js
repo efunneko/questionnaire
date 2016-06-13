@@ -1,3 +1,5 @@
+// use strict;
+
 (function (ctx, $, questionData, undefined) {
 
     ctx.main = function() {
@@ -18,11 +20,11 @@
             },
             inputBarLarge: {
                 type: "inputBar",
-                class: "input-bar-large"
+                className: "input-bar-large"
             },
             inputBarSmall: {
                 type: "inputBar",
-                class: "input-bar-small"
+                className: "input-bar-small"
             },
             ypn: {
                 type: "radio",
@@ -64,6 +66,30 @@
 
         };
 
+        // this.templates = {
+        // 
+        //     questionInputBar: function($el, model) {
+        //         var qDiv = $el.$div({class: "question-input-bar " + model.class ? model.class : "",
+        //                              style: model.style ? model.style : " "});
+        //         if (model.preText || question.text) {                
+        //             var text = this.doTemplateSubs(model.preText ? model.preText : model.text);
+        //             qDiv.$div(text);
+        //         }
+        //         
+        //     },
+        //     radio: function($el, model) {
+        //         var div = $el.$div();
+        //         $.each(model.options, function(i, opt) {                   
+        //             div.$input_({type: "radio", 
+        //                          name: model.name, 
+        //                          value: opt.text}).$span(opt.text);
+        //         });
+        // 
+        //     }
+        // 
+        // 
+        // };
+
         // Initialize 
         this.init = function (options) {
             $.createHtml("configure", {installParentFunctions: true});
@@ -92,20 +118,19 @@
         // Go through all the items in the list and handle them
         this.processItems = function() {
             var self = this;
-            var itemState = this.itemState;
+            console.log("itemStack", this.itemStack);
             while(true) {
-                console.log(itemState);
-                if (itemState.i >= itemState.items.length) {
+                console.log("Current state:", this.itemState, this.itemStack);
+                if (this.itemState.i >= this.itemState.items.length) {
                     if (this.itemStack.length > 0) {
-                        itemState = this.itemStack.pop();
+                        this.itemState = this.itemStack.pop();
                         this.processItems();
                     }
                     return;
                 }
 
-                var item = itemState.items[itemState.i];
-                console.log(item);
-                itemState.i++;
+                var item = this.itemState.items[this.itemState.i];
+                this.itemState.i++;
 
                 if (item.type == "group") {
                     self.addGroup(item);
@@ -124,7 +149,7 @@
 
         // Add question
         this.addQuestion = function(question) {
-            console.log(question);            
+            console.log("adding question:", question, this);            
             if (!this.group.$el) {
                 console.error("All questions must be contained within a group");
             }
@@ -143,14 +168,17 @@
 
         // Add a new group
         this.addGroup = function(groupInfo) {
+            console.log("adding group:", groupInfo, this);
             var group = groupInfo;
             group.$el = this.group.$el.$div({id: "group-" + groupInfo.name, 
-                                              class: "group-" + groupInfo.name + " question-group"});
+                                              'class': "group-" + groupInfo.name + " question-group"});
             // this.groupStack.push(this.group);
             this.group = group;
 
             if (group.items) {
+                console.log("pushing state onto stack", this.itemStack);
                 this.itemStack.push(this.itemState);
+                console.log("after push:", this.itemStack);
                 this.itemState = {i: 0, items: group.items};
             }
             
@@ -162,7 +190,7 @@
         this.renderQuestion = function(typeInfo, question) {
             var self = this;
             question.typeInfo = typeInfo;
-            var qDiv = this.group.$el.$div({class: "question-input-bar " + question.class ? question.class : "",
+            var qDiv = this.group.$el.$div({'class': "question-input-bar " + (question.className ? question.className : ""),
                                             style: question.style ? question.style : " "});
             if (question.preText || question.text) {                
                 var text = this.doTemplateSubs(question.preText ? question.preText : question.text);

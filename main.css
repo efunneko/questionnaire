@@ -1,6 +1,21 @@
 
 /* test stuff */
 
+
+body {
+    margin: auto;
+    width: 900px;
+}
+
+.heading1 {
+    font-size: 130%;
+    font-weight: bold;
+}
+
 .cell {
     background: #888888;
+}
+
+.question-input-bar {
+    margin: 10px 0px;
 }

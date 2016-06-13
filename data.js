@@ -30,7 +30,11 @@ var questionData = {
                     text: "Female"
                 },
                 {
-                    text: "Other",
+                    text: "Neither",
+                    help: "You can't label me"
+                },
+                {
+                    text: "Both",
                     help: "You be what you want to be"
                 },
             ],
@@ -47,6 +51,7 @@ var questionData = {
             items: [
                 {
                     type: "text",
+                    className: "heading1",
                     text: "Hi there!",
                 },
                 {
