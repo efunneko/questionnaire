@@ -66,30 +66,6 @@
 
         };
 
-        // this.templates = {
-        // 
-        //     questionInputBar: function($el, model) {
-        //         var qDiv = $el.$div({class: "question-input-bar " + model.class ? model.class : "",
-        //                              style: model.style ? model.style : " "});
-        //         if (model.preText || question.text) {                
-        //             var text = this.doTemplateSubs(model.preText ? model.preText : model.text);
-        //             qDiv.$div(text);
-        //         }
-        //         
-        //     },
-        //     radio: function($el, model) {
-        //         var div = $el.$div();
-        //         $.each(model.options, function(i, opt) {                   
-        //             div.$input_({type: "radio", 
-        //                          name: model.name, 
-        //                          value: opt.text}).$span(opt.text);
-        //         });
-        // 
-        //     }
-        // 
-        // 
-        // };
-
         // Initialize 
         this.init = function (options) {
             $.createHtml("configure", {installParentFunctions: true});
@@ -98,9 +74,10 @@
 
         // Start the whole process
         this.start = function(options) {
+            this.data  = options.data;
             this.state = {
                 templateVars: {},
-                data:         options.data,
+                answers:      {},
                 radioSeq:     0,
                 itemStack:    [],
                 itemState: {
@@ -126,12 +103,10 @@
                 if (this.state.itemState.i >= this.state.itemState.items.length) {
                     if (this.state.itemStack.length > 0) {
                         this.state.itemState = this.state.itemStack.pop();
-                        //this.processItems();
                     }
                     else {
                         return;
                     }
-                    //return;
                 }
 
                 var item = this.state.itemState.items[this.state.itemState.i];
@@ -254,6 +229,7 @@
         // Called whenever there is a new answer for a question
         this.processAnswer = function(question, val) {
             var typeInfo    = question.typeInfo;
+            this.state.answers[question.name] = val;
             question.answer = val;
             
             if (question.templateName) {
