@@ -208,7 +208,7 @@
                 var input = qDiv.$input(opts);
                 question.form = input;
                 input.bind("change", function(e) {
-                    self.processAnswer(question);
+                    self.processAnswer(question, input.val());
                 });
             }
             else if (typeInfo.type == "radio") {
@@ -216,12 +216,20 @@
                 var div = qDiv.$div();
                 var radioName = "radio" + this.radioSeq++;
                 $.each(typeInfo.options, function(i, opt) {                   
-                    div.$label({'class': className}).
-                               $input_({type: "radio", 
+                    var label = div.$label({'class': className}).
+                        $input_({type: "radio", 
                                  'class': className, 
                                  name: radioName, 
-                                 value: opt.text}).$span(opt.text);
+                                 value: opt.text}).$span_(opt.text);
+                    console.log(opt);
+                    label.bind("change", function(e) {
+                        var input = $(e.currentTarget).find("input");
+                        if (input.is(":checked")) {
+                            self.processAnswer(question, input.val());
+                        }
+                    });
                 });
+               
             }
             else if (typeInfo.type == "dropdown") {
                 var div = qDiv.$div();
@@ -240,12 +248,15 @@
 
         };
 
-        this.processAnswer = function(question) {
+        this.processAnswer = function(question, val) {
             var typeInfo = question.typeInfo;
             var form     = question.form;
             var val;
 
             if (typeInfo.type == "tbd") {
+            }
+            else if (typeInfo.type == "radio") {
+                console.log(val);
             }
             else {
                 val = form.val();

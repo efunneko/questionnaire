@@ -27,7 +27,8 @@ var questionData = {
                     text: "Male",
                 },
                 {
-                    text: "Female"
+                    text: "Female",
+                    help: "You go girl"
                 },
                 {
                     text: "Neither",
@@ -77,7 +78,7 @@ var questionData = {
                         {
                             type: "yn",
                             name: "boolquestions",
-                            text: "Yes or No?",
+                            text: "Yes or No? $gender",
                             templateName: "boolquestions"
                         },
                     ],
