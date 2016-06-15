@@ -212,10 +212,15 @@
                 });
             }
             else if (typeInfo.type == "radio") {
+                var className = "radio-inline " + (typeInfo.className ? typeInfo.className : ""); 
                 var div = qDiv.$div();
                 var radioName = "radio" + this.radioSeq++;
                 $.each(typeInfo.options, function(i, opt) {                   
-                    div.$input_({type: "radio", name: radioName, value: opt.text}).$span(opt.text);
+                    div.$label({'class': className}).
+                               $input_({type: "radio", 
+                                 'class': className, 
+                                 name: radioName, 
+                                 value: opt.text}).$span(opt.text);
                 });
             }
             else if (typeInfo.type == "dropdown") {
