@@ -93,23 +93,23 @@
         // Initialize 
         this.init = function (options) {
             $.createHtml("configure", {installParentFunctions: true});
-            this.group = {
-                $el: $('#' + options.id)
-            };
-            this.templateVars = {};
-            this.data = options.data;
-            this.radioSeq = 0;
-            this.start();
+            this.start(options);
         };
 
         // Start the whole process
-        this.start = function() {
-            this.groupStack = [];
-
-            this.itemStack = [];
-            this.itemState = {
-                i: 0,
-                items: this.data.items
+        this.start = function(options) {
+            this.state = {
+                templateVars: {},
+                data:         options.data,
+                radioSeq:     0,
+                itemStack:    [],
+                itemState: {
+                    i: 0,
+                    items: options.data.items,
+                    group: {
+                        $el: $('#' + options.id)
+                    }
+                }
             };
 
             this.processItems();
@@ -118,19 +118,24 @@
         // Go through all the items in the list and handle them
         this.processItems = function() {
             var self = this;
-            console.log("itemStack", this.itemStack);
+            console.log("itemStack", this.state.itemStack);
+
             while(true) {
-                console.log("Current state:", this.itemState, this.itemStack);
-                if (this.itemState.i >= this.itemState.items.length) {
-                    if (this.itemStack.length > 0) {
-                        this.itemState = this.itemStack.pop();
-                        this.processItems();
+                console.log("Current state:", this.state.itemState, this.state.itemState.group.$el);
+
+                if (this.state.itemState.i >= this.state.itemState.items.length) {
+                    if (this.state.itemStack.length > 0) {
+                        this.state.itemState = this.state.itemStack.pop();
+                        //this.processItems();
                     }
-                    return;
+                    else {
+                        return;
+                    }
+                    //return;
                 }
 
-                var item = this.itemState.items[this.itemState.i];
-                this.itemState.i++;
+                var item = this.state.itemState.items[this.state.itemState.i];
+                this.state.itemState.i++;
 
                 if (item.type == "group") {
                     self.addGroup(item);
@@ -149,11 +154,11 @@
 
         // Add question
         this.addQuestion = function(question) {
-            console.log("adding question:", question, this);            
-            if (!this.group.$el) {
+            // console.log("adding question:", question, this);            
+            if (!this.state.itemState.group.$el) {
                 console.error("All questions must be contained within a group");
             }
-            var $el = this.group.$el;
+            var $el = this.state.itemState.group.$el;
 
             if (this.builtinTypes[question.type]) {
                 this.renderQuestion(this.builtinTypes[question.type], question);
@@ -169,28 +174,25 @@
         // Add a new group
         this.addGroup = function(groupInfo) {
             console.log("adding group:", groupInfo, this);
-            var group = groupInfo;
-            group.$el = this.group.$el.$div({id: "group-" + groupInfo.name, 
+            var group = $.extend({}, groupInfo);
+            group.$el = this.state.itemState.group.$el.$div({id: "group-" + groupInfo.name, 
                                               'class': "group-" + groupInfo.name + " question-group"});
-            // this.groupStack.push(this.group);
-            this.group = group;
-
             if (group.items) {
-                console.log("pushing state onto stack", this.itemStack);
-                this.itemStack.push(this.itemState);
-                console.log("after push:", this.itemStack);
-                this.itemState = {i: 0, items: group.items};
+                this.state.itemStack.push(this.state.itemState);
+                this.state.itemState = {i: 0, 
+                                        items: group.items,
+                                        group: {
+                                            $el: group.$el
+                                        }
+                                       };
             }
-            
-            // this.group = this.groupStack.pop();
-            
         };
 
         // Render the question
         this.renderQuestion = function(typeInfo, question) {
             var self = this;
             question.typeInfo = typeInfo;
-            var qDiv = this.group.$el.$div({'class': "question-input-bar " + (question.className ? question.className : ""),
+            var qDiv = this.state.itemState.group.$el.$div({'class': "question-input-bar " + (question.className ? question.className : ""),
                                             style: question.style ? question.style : " "});
             if (question.preText || question.text) {                
                 var text = this.doTemplateSubs(question.preText ? question.preText : question.text);
@@ -214,7 +216,7 @@
             else if (typeInfo.type == "radio") {
                 var className = "radio-inline " + (typeInfo.className ? typeInfo.className : ""); 
                 var div = qDiv.$div();
-                var radioName = "radio" + this.radioSeq++;
+                var radioName = "radio" + this.state.radioSeq++;
                 $.each(typeInfo.options, function(i, opt) {                   
                     var label = div.$label({'class': className}).
                         $input_({type: "radio", 
@@ -248,39 +250,35 @@
 
         };
 
+        
+        // Called whenever there is a new answer for a question
         this.processAnswer = function(question, val) {
-            var typeInfo = question.typeInfo;
-            var form     = question.form;
-            var val;
-
-            if (typeInfo.type == "tbd") {
-            }
-            else if (typeInfo.type == "radio") {
-                console.log(val);
-            }
-            else {
-                val = form.val();
-                console.log("val:", val);
-            }
+            var typeInfo    = question.typeInfo;
+            question.answer = val;
             
             if (question.templateName) {
-                if (val) {
-                    this.templateVars[question.templateName] = val;
+                if (typeof(val) != "undefined") {
+                    this.state.templateVars[question.templateName] = val;
                 }
+            }
+
+            if (localStorage) {
+                localStorage.setItem("questionState", JSON.stringify(this.state));
             }
             
             if (question.mustResume) {
+                question.mustResume = false;
                 this.processItems();
             }
             
         };
 
+        // Called to substitute 
         this.doTemplateSubs = function(inText) {
             var self = this;
             return inText.replace(/\$([\w\d\-_]+)/g, function(str, name) {
-                console.log("inreplace", name);
-                if (self.templateVars[name]) {
-                    return self.templateVars[name];
+                if (self.state.templateVars[name]) {
+                    return self.state.templateVars[name];
                 }
                 else {
                     return "$" + name;
