@@ -75,6 +75,7 @@
         // Start the whole process
         this.start = function(options) {
             this.data  = options.data;
+            this.uniquifyNames(this.data, {});
             this.state = {
                 templateVars: {},
                 answers:      {},
@@ -91,6 +92,28 @@
 
             this.processItems();
         };
+
+        this.uniquifyNames = function(data, names) {
+            var self = this;
+            $.each(data.items, function(i, val) {
+                var name = val.name;
+                if (names[name]) {
+                    var i = 0;
+                    while(true) {
+                        if (!names[name+i]) {
+                            name = name+i;
+                            val.name = name;
+                            break;
+                        }
+                        i++;
+                    }
+                }
+                names[name] = true;
+                if (val.type == "group") {
+                    self.uniquifyNames(val, names);
+                }
+            });
+        }
 
         // Go through all the items in the list and handle them
         this.processItems = function() {
