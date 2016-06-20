@@ -70,6 +70,39 @@ var questionData = {
                     pause: true,
                     templateName: "gender"
                 },
+                {
+                    type: "checkbox",
+                    name: "check-box-test",
+                    text: "Where would you like to go?",
+                    pause: true,
+                    options: [
+                        {
+                            type: "checkbox",
+                            text: "Orlando",
+                            name: "visit-orlando"
+                        },
+                        {
+                            type: "checkbox",
+                            text: "Toronto",
+                            name: "visit-toronto"
+                        },
+                        {
+                            type: "checkbox",
+                            text: "New York",
+                            name: "visit-ny"
+                        },
+                        {
+                            type: "checkbox",
+                            text: "Barcelona",
+                            name: "visit-barcelona"
+                        },
+                        {
+                            type: "checkbox",
+                            text: "Paris",
+                            name: "visit-paris"
+                        }
+                    ]
+                },
                 {  
                     type: "group",
                     name: "sub-group",

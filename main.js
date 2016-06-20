@@ -18,6 +18,9 @@
             inputBar: {
                 type: "inputBar"
             },
+            checkbox: {
+                type: "checkbox"
+            },
             inputBarLarge: {
                 type: "inputBar",
                 className: "input-bar-large"
@@ -150,7 +153,7 @@
                     self.addQuestion(item, haveAnswer);
                 }
 
-                if (!haveAnswer && item.pause) {
+                if (!haveAnswer && item.pause && item.type != "group") {
                     item.mustResume = true;
                     return;
                 }
@@ -173,7 +176,7 @@
                 this.renderQuestion(questionData.types[question.type], question, haveAnswer);
             }
             else {
-                console.fatal("Unknown type: " + question.type);
+                console.error("Unknown type: " + question.type);
             }
         };
 
@@ -259,8 +262,14 @@
             }
             else if (typeInfo.type == "checkbox") {
                 var checkDiv = qDiv.$div();
-                $.each(typeInfo.options, function(i, opt) {                   
-                    checkDiv.$div().$input_({type: "checkbox"}).$span(opt.text);
+                var options = question.options ? question.options : typeInfo.options;
+                var className = "checkbox " + (typeInfo.className ? typeInfo.className : ""); 
+                $.each(options, function(i, opt) {
+                    var label = checkDiv.$label({'class': className}).$input_({type: "checkbox"}).$span_(opt.text);
+                    label.bind("change", function(e) {
+                        var input = $(e.currentTarget).find("input");
+                        self.processAnswer(opt, input.is(":checked"));
+                    });
                 });
                 
             }
@@ -270,7 +279,7 @@
         
         // Called whenever there is a new answer for a question
         this.processAnswer = function(question, val) {
-            var typeInfo    = question.typeInfo;
+            console.log(question, val);
             this.state.answers[question.name] = val;
             question.answer = val;
             
