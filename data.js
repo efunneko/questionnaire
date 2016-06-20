@@ -89,7 +89,6 @@ var questionData = {
                     type: "mfo",
                     name: "gender",
                     text: "question after sub-group",
-                    templateName: "gender"
                 },
             ]
         },
@@ -110,7 +109,6 @@ var questionData = {
                     name: "gender",
                     text: "Hi $nickname! What do you consider yourself?",
                     pause: true,
-                    templateName: "gender"
                 },
                 {  
                     type: "group",
@@ -122,7 +120,6 @@ var questionData = {
                             type: "yn",
                             name: "boolquestions",
                             text: "Yes or No? $gender",
-                            templateName: "boolquestions",
                             pause: true,
                         },
                     ],
@@ -131,7 +128,6 @@ var questionData = {
                     type: "mfo",
                     name: "gender",
                     text: "question after sub-group",
-                    templateName: "gender"
                 },
             ]
         }

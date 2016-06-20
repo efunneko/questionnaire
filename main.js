@@ -89,6 +89,11 @@
                     }
                 }
             };
+            
+            var savedState = JSON.parse(localStorage.getItem("questionState"));
+            console.log(savedState);
+            this.state.answers = savedState.answers;
+            this.state.templateVars = savedState.templateVars;
 
             this.processItems();
         };
@@ -113,15 +118,16 @@
                     self.uniquifyNames(val, names);
                 }
             });
+            console.log(data);
         }
 
         // Go through all the items in the list and handle them
         this.processItems = function() {
             var self = this;
-            console.log("itemStack", this.state.itemStack);
+            //console.log("itemStack", this.state.itemStack);
 
             while(true) {
-                console.log("Current state:", this.state.itemState, this.state.itemState.group.$el);
+                // console.log("Current state:", this.state.itemState, this.state.itemState.group.$el);
 
                 if (this.state.itemState.i >= this.state.itemState.items.length) {
                     if (this.state.itemStack.length > 0) {
@@ -135,14 +141,16 @@
                 var item = this.state.itemState.items[this.state.itemState.i];
                 this.state.itemState.i++;
 
+                var haveAnswer = typeof(this.state.answers[item.name]) != "undefined";
+
                 if (item.type == "group") {
                     self.addGroup(item);
                 }
                 else {
-                    self.addQuestion(item);
+                    self.addQuestion(item, haveAnswer);
                 }
 
-                if (item.pause) {
+                if (!haveAnswer && item.pause) {
                     item.mustResume = true;
                     return;
                 }
@@ -151,7 +159,7 @@
         };
 
         // Add question
-        this.addQuestion = function(question) {
+        this.addQuestion = function(question, haveAnswer) {
             // console.log("adding question:", question, this);            
             if (!this.state.itemState.group.$el) {
                 console.error("All questions must be contained within a group");
@@ -159,10 +167,10 @@
             var $el = this.state.itemState.group.$el;
 
             if (this.builtinTypes[question.type]) {
-                this.renderQuestion(this.builtinTypes[question.type], question);
+                this.renderQuestion(this.builtinTypes[question.type], question, haveAnswer);
             }
             else if (questionData.types[question.type]) {
-                this.renderQuestion(questionData.types[question.type], question);
+                this.renderQuestion(questionData.types[question.type], question, haveAnswer);
             }
             else {
                 console.fatal("Unknown type: " + question.type);
@@ -187,7 +195,7 @@
         };
 
         // Render the question
-        this.renderQuestion = function(typeInfo, question) {
+        this.renderQuestion = function(typeInfo, question, haveAnswer) {
             var self = this;
             question.typeInfo = typeInfo;
             var qDiv = this.state.itemState.group.$el.$div({'class': "question-input-bar " + (question.className ? question.className : ""),
@@ -206,21 +214,32 @@
                     opts.placeholder = question.placeholder;
                 }
                 var input = qDiv.$input(opts);
+                if (haveAnswer) {
+                    input.val(self.state.answers[question.name]);
+                }
                 question.form = input;
                 input.bind("change", function(e) {
                     self.processAnswer(question, input.val());
                 });
             }
             else if (typeInfo.type == "radio") {
+                var self = this;
                 var className = "radio-inline " + (typeInfo.className ? typeInfo.className : ""); 
                 var div = qDiv.$div();
                 var radioName = "radio" + this.state.radioSeq++;
-                $.each(typeInfo.options, function(i, opt) {                   
+                $.each(typeInfo.options, function(i, opt) {  
+                    var radioOpts = {
+                        type: "radio", 
+                        'class': className, 
+                        name: radioName, 
+                        value: opt.text
+                    };
+                    if (haveAnswer &&
+                        self.state.answers[question.name] == opt.text) {
+                        radioOpts.checked = "checked";
+                    }
                     var label = div.$label({'class': className}).
-                        $input_({type: "radio", 
-                                 'class': className, 
-                                 name: radioName, 
-                                 value: opt.text}).$span_(opt.text);
+                        $input_(radioOpts).$span_(opt.text);
                     console.log(opt);
                     label.bind("change", function(e) {
                         var input = $(e.currentTarget).find("input");
