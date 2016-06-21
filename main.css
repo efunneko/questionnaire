@@ -17,7 +17,8 @@ body {
 }
 
 .question-input-bar {
-    margin: 10px 0px;
+    margin: 15px 0px 8px 0px;
+    font-weight: bold;
 }
 
 .main-radio {

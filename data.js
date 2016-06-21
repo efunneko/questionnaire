@@ -77,27 +77,22 @@ var questionData = {
                     pause: true,
                     options: [
                         {
-                            type: "checkbox",
                             text: "Orlando",
                             name: "visit-orlando"
                         },
                         {
-                            type: "checkbox",
                             text: "Toronto",
                             name: "visit-toronto"
                         },
                         {
-                            type: "checkbox",
                             text: "New York",
                             name: "visit-ny"
                         },
                         {
-                            type: "checkbox",
                             text: "Barcelona",
                             name: "visit-barcelona"
                         },
                         {
-                            type: "checkbox",
                             text: "Paris",
                             name: "visit-paris"
                         }

@@ -78,7 +78,7 @@
         // Start the whole process
         this.start = function(options) {
             this.data  = options.data;
-            this.uniquifyNames(this.data, {});
+            this.uniquifyNames(this.data.items, {});
             this.state = {
                 templateVars: {},
                 answers:      {},
@@ -101,15 +101,15 @@
             this.processItems();
         };
 
-        this.uniquifyNames = function(data, names) {
+        this.uniquifyNames = function(items, names) {
             var self = this;
-            $.each(data.items, function(i, val) {
+            $.each(items, function(i, val) {
                 var name = val.name;
                 if (names[name]) {
-                    var i = 0;
+                    var i = 2;
                     while(true) {
                         if (!names[name+i]) {
-                            name = name+i;
+                            name = name+"-"+i;
                             val.name = name;
                             break;
                         }
@@ -118,10 +118,12 @@
                 }
                 names[name] = true;
                 if (val.type == "group") {
-                    self.uniquifyNames(val, names);
+                    self.uniquifyNames(val.items, names);
+                }
+                else if (val.type == "checkbox") {
+                    self.uniquifyNames(val.options, names);
                 }
             });
-            console.log(data);
         }
 
         // Go through all the items in the list and handle them
@@ -263,9 +265,13 @@
             else if (typeInfo.type == "checkbox") {
                 var checkDiv = qDiv.$div();
                 var options = question.options ? question.options : typeInfo.options;
-                var className = "checkbox " + (typeInfo.className ? typeInfo.className : ""); 
+                var className = typeInfo.className ? typeInfo.className : ""; 
                 $.each(options, function(i, opt) {
-                    var label = checkDiv.$label({'class': className}).$input_({type: "checkbox"}).$span_(opt.text);
+                    var checkboxOpts = {type: "checkbox"};
+                    if (self.state.answers[opt.name]) {
+                        checkboxOpts.checked = true;
+                    }
+                    var label = checkDiv.$div({'class': 'checkbox'}).$label({'class': className}).$input_(checkboxOpts).$span_(opt.text);
                     label.bind("change", function(e) {
                         var input = $(e.currentTarget).find("input");
                         self.processAnswer(opt, input.is(":checked"));
