@@ -21,6 +21,9 @@
             checkbox: {
                 type: "checkbox"
             },
+            numentry: {
+                type: "numentry"
+            },
             inputBarLarge: {
                 type: "inputBar",
                 className: "input-bar-large"
@@ -211,7 +214,6 @@
             }
 
             if (typeInfo.type == "text") {
-                
             }
             else if (typeInfo.type == "inputBar") {
                 var opts = {};
@@ -276,6 +278,37 @@
                         var input = $(e.currentTarget).find("input");
                         self.processAnswer(opt, input.is(":checked"));
                     });
+                });
+                
+            }
+            else if (typeInfo.type == "numentry") {
+                var div = qDiv.$div();
+                var className = typeInfo.className ? typeInfo.className : ""; 
+
+                var leftArrow  = div.$div({'class': 'numentry-left-arrow'}).$span_("-");
+                var input      = div.$div({'class': 'numentry-value'}).$input();
+                var rightArrow = div.$div({'class': 'numentry-right-arrow'}).$span_("+");
+
+                if (haveAnswer) {
+                    input.val(self.state.answers[question.name]);
+                }
+                else {
+                    input.val(0);
+                }
+
+                input.bind("change", function(e) {
+                    self.processAnswer(question, input.val());
+                });
+                leftArrow.bind("click", function(e) {
+                    var val = parseInt(input.val());
+                    if (val < 1) { val = 1; }
+                    input.val(val-1);
+                    self.processAnswer(question, input.val());
+                });
+                rightArrow.bind("click", function(e) {
+                    var val = parseInt(input.val());
+                    input.val(val+1);
+                    self.processAnswer(question, input.val());
                 });
                 
             }

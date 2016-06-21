@@ -71,6 +71,12 @@ var questionData = {
                     templateName: "gender"
                 },
                 {
+                    type: "numentry",
+                    name: "age",
+                    text: "What is your age?",
+                    templateName: "age"
+                },
+                {
                     type: "checkbox",
                     name: "check-box-test",
                     text: "Where would you like to go?",
