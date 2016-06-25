@@ -24,6 +24,9 @@
             numentry: {
                 type: "numentry"
             },
+            stackedNumentry: {
+                type: "stackedNumentry"
+            },
             inputBarLarge: {
                 type: "inputBar",
                 className: "input-bar-large"
@@ -273,7 +276,12 @@
                     if (self.state.answers[opt.name]) {
                         checkboxOpts.checked = true;
                     }
-                    var label = checkDiv.$div({'class': 'checkbox'}).$label({'class': className}).$input_(checkboxOpts).$span_(opt.text);
+                    var label = checkDiv.
+                        $div({'class': 'checkbox'}).
+                        $label({'class': className}).
+                        $input_(checkboxOpts).
+                        $span_(opt.text);
+
                     label.bind("change", function(e) {
                         var input = $(e.currentTarget).find("input");
                         self.processAnswer(opt, input.is(":checked"));
@@ -282,39 +290,51 @@
                 
             }
             else if (typeInfo.type == "numentry") {
-                var div = qDiv.$div();
-                var className = typeInfo.className ? typeInfo.className : ""; 
-
-                var leftArrow  = div.$div({'class': 'numentry-left-arrow'}).$span_("-");
-                var input      = div.$div({'class': 'numentry-value'}).$input();
-                var rightArrow = div.$div({'class': 'numentry-right-arrow'}).$span_("+");
-
-                if (haveAnswer) {
-                    input.val(self.state.answers[question.name]);
-                }
-                else {
-                    input.val(0);
-                }
-
-                input.bind("change", function(e) {
-                    self.processAnswer(question, input.val());
-                });
-                leftArrow.bind("click", function(e) {
-                    var val = parseInt(input.val());
-                    if (val < 1) { val = 1; }
-                    input.val(val-1);
-                    self.processAnswer(question, input.val());
-                });
-                rightArrow.bind("click", function(e) {
-                    var val = parseInt(input.val());
-                    input.val(val+1);
-                    self.processAnswer(question, input.val());
+                self.addNumEntry(question, typeInfo, qDiv, haveAnswer); 
+            }
+            else if (typeInfo.type == "stackedNumentry") {
+                var table = qDiv.$table({'class': 'stackedNumentry'});
+                $.each(question.items, function(i, val) {
+                    var row = table.$tr();
+                    row.$th(val.text);
+                    self.addNumEntry(val, typeInfo, row.$td().$div(), haveAnswer); 
                 });
                 
             }
 
         };
 
+        this.addNumEntry = function(question, typeInfo, qDiv, haveAnswer) {
+            var self = this;
+            var div = qDiv.$div();
+            var className = typeInfo.className ? typeInfo.className : ""; 
+
+            var leftArrow  = div.$div({'class': 'numentry-left-arrow'}).$span_("-");
+            var input      = div.$div({'class': 'numentry-value'}).$input();
+            var rightArrow = div.$div({'class': 'numentry-right-arrow'}).$span_("+");
+
+            if (haveAnswer) {
+                input.val(self.state.answers[question.name]);
+            }
+            else {
+                input.val(0);
+            }
+
+            input.bind("change", function(e) {
+                self.processAnswer(question, input.val());
+            });
+            leftArrow.bind("click", function(e) {
+                var val = parseInt(input.val());
+                if (val < 1) { val = 1; }
+                input.val(val-1);
+                self.processAnswer(question, input.val());
+            });
+            rightArrow.bind("click", function(e) {
+                var val = parseInt(input.val());
+                input.val(val+1);
+                self.processAnswer(question, input.val());
+            });
+        };
         
         // Called whenever there is a new answer for a question
         this.processAnswer = function(question, val) {

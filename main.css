@@ -71,3 +71,8 @@ body {
     border-style: solid;
     border-color: #aaa;
 }
+
+.stackedNumentry th {
+    padding: 0px 10px 0px 0px;
+
+}

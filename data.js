@@ -77,10 +77,29 @@ var questionData = {
                     templateName: "age"
                 },
                 {
+                    type: "stackedNumentry",
+                    name: "volume-male",
+                    text: "Volume info",
+                    items: [
+                        {
+                            name: "volume-male-one",
+                            text: "This is question 1",
+                        },
+                        {
+                            name: "volume-male-two",
+                            text: "This is question 2",
+                        },
+                        {
+                            name: "volume-male-one",
+                            text: "This is question 3",
+                        },
+                    ]
+                },
+                {
                     type: "checkbox",
                     name: "check-box-test",
                     text: "Where would you like to go?",
-                    pause: true,
+                    pause: false,
                     options: [
                         {
                             text: "Orlando",
