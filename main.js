@@ -189,9 +189,16 @@
         };
 
         // Add a new group
-        this.addGroup = function(groupInfo) {
+        this.addGroup = function(groupInfo, pageStart) {
             console.log("adding group:", groupInfo, this);
             var group = $.extend({}, groupInfo);
+
+            if (!pageStart && group.newPage) {
+                console.log("New page");
+                this.state.itemState.group.$el.$div({'class': 'new-page-link'}).$span(group.linkText);
+                return;
+            }
+
             group.$el = this.state.itemState.group.$el.$div({id: "group-" + groupInfo.name, 
                                               'class': "group-" + groupInfo.name + " question-group"});
             if (group.items) {
