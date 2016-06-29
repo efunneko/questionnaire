@@ -195,7 +195,12 @@
 
             if (!pageStart && group.newPage) {
                 console.log("New page");
-                this.state.itemState.group.$el.$div({'class': 'new-page-link'}).$span(group.linkText);
+                var footer = this.state.itemState.group.$el.$div({'class': 'footer'});
+
+                footer.$div({'class': 'prev-page-link'}).
+                    $span("&lArr; test prev");
+                footer.$div({'class': 'next-page-link'}).
+                    $span(group.linkText + " &rArr;");
                 return;
             }
 

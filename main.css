@@ -76,3 +76,21 @@ body {
     padding: 0px 20px 0px 0px;
 
 }
+
+.next-page-link, .prev-page-link {
+    cursor: pointer;
+    display: flex;
+    padding: 3px 6px;
+    margin: 10px 0px;
+    border-radius: 2px;
+    border: 1px solid;
+    background-color: #ddf;
+    border-color: #bbe;
+    box-shadow: 0px 2px 6px rgba(0,0,0,0.3); 
+}
+
+.footer {
+    display: flex;
+    justify-content: space-between;
+}
+
