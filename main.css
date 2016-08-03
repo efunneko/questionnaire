@@ -4,7 +4,14 @@
 
 body {
     margin: auto;
-    width: 900px;
+    max-width: 800px;
+}
+
+/*Margin by pixel:*/
+@media screen and ( max-width: 830px ){
+    body {
+        margin: 0 15px 0 15px;
+    }
 }
 
 .heading1 {

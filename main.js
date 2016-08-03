@@ -77,7 +77,25 @@
 
         // Initialize 
         this.init = function (options) {
+            var self = this;
             $.createHtml("configure", {installParentFunctions: true});
+
+            History.Adapter.bind(window,'statechange',
+                                 function() {
+                                     var State = History.getState(); 
+                                     console.log("history state: ", State);
+                                 });
+
+            self.focusedElement = null;
+            $(document).on('focus', 'input', function () {
+                if (self.focusedElement == this) return; 
+                self.focusedElement = this;
+                setTimeout(function () { 
+                    self.focusedElement.select(); 
+                }, 0); 
+            });
+
+
             this.start(options);
         };
 
@@ -99,10 +117,13 @@
                 }
             };
             
-            var savedState = JSON.parse(localStorage.getItem("questionState"));
-            console.log(savedState);
-            this.state.answers = savedState.answers;
-            this.state.templateVars = savedState.templateVars;
+            var savedState = localStorage.getItem("questionState");
+            if (savedState) {
+                savedState = JSON.parse(savedState);
+                console.log(savedState);
+                this.state.answers = savedState.answers;
+                this.state.templateVars = savedState.templateVars;
+            }
 
             this.processItems();
         };
@@ -155,7 +176,7 @@
                 var haveAnswer = typeof(this.state.answers[item.name]) != "undefined";
 
                 if (item.type == "group") {
-                    self.addGroup(item);
+                    self.addGroup(item, self.pageStart);
                 }
                 else {
                     self.addQuestion(item, haveAnswer);
@@ -197,10 +218,20 @@
                 console.log("New page");
                 var footer = this.state.itemState.group.$el.$div({'class': 'footer'});
 
-                footer.$div({'class': 'prev-page-link'}).
+                var prev   = footer.$div({'class': 'prev-page-link'}).
                     $span("&lArr; test prev");
-                footer.$div({'class': 'next-page-link'}).
+                var next   = footer.$div({'class': 'next-page-link'}).
                     $span(group.linkText + " &rArr;");
+
+                prev.bind("click", function(e) {
+                    History.back();
+                });
+
+                next.bind("click", function(e) {
+                    History.pushState({state:1}, "State 1", "?state=1"); // logs {state:1}, "State 1", "?state=1"
+                });
+
+
                 return;
             }
 
