@@ -183,6 +183,45 @@ var questionData = {
                     text: "question after sub-group",
                 },
             ]
+        },
+        {  
+            type: "group",
+            name: "page-3",
+            heading: "Welcome to page 3",
+            linkText: "Page 3",
+            newPage: true,
+            items: [
+                {
+                    type: "text",
+                    className: "heading1",
+                    text: "Hi there!",
+                },
+                {
+                    type: "mfo",
+                    name: "gender",
+                    text: "Hi $nickname! What do you consider yourself?",
+                    pause: true,
+                },
+                {  
+                    type: "group",
+                    name: "sub-group",
+                    heading: "Sub group!",
+                    linkText: "Group (sub)",
+                    items: [
+                        {
+                            type: "yn",
+                            name: "boolquestions",
+                            text: "Yes or No? $gender",
+                            pause: true,
+                        },
+                    ],
+                },
+                {
+                    type: "mfo",
+                    name: "gender",
+                    text: "question after sub-group",
+                },
+            ]
         }
 
     ],

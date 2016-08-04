@@ -82,8 +82,9 @@
 
             History.Adapter.bind(window,'statechange',
                                  function() {
-                                     var State = History.getState(); 
-                                     console.log("history state: ", State);
+                                     var state = History.getState(); 
+                                     console.log("history state: ", state);
+                                     self.gotoPage(state.data);
                                  });
 
             self.focusedElement = null;
@@ -102,6 +103,7 @@
         // Start the whole process
         this.start = function(options) {
             this.data  = options.data;
+            this.id    = options.id;
             this.uniquifyNames(this.data.items, {});
             this.state = {
                 templateVars: {},
@@ -116,6 +118,12 @@
                     }
                 }
             };
+
+            // Put one more group on the end as the last marker
+            this.data.items.push({
+                type: "group",
+                lastGroup: true
+            });
             
             var savedState = localStorage.getItem("questionState");
             if (savedState) {
@@ -125,7 +133,61 @@
                 this.state.templateVars = savedState.templateVars;
             }
 
+            var group = this.data.items[0];
+            group.firstGroup = true;
+            History.pushState({name: group.name}, group.heading, "?page="+group.name);
+        };
+
+
+        this.gotoPage = function(data) {
+            if (!data.name) {
+                console.error("Missing name in history state");
+            }
+            
+            var pageInfo = this.findPage(this.data.items, data.name);
+
+            if (!pageInfo) {
+                console.error("Failed to find page name");
+            }
+
+            console.log("Found page: ", pageInfo);
+            
+            this.clearPage();
+            this.state.pageGroup = pageInfo.items[pageInfo.index];
+            this.state.prevGroup = data.prevGroup;
+            this.state.itemState = {i: pageInfo.index, 
+                                    items: pageInfo.items,
+                                    group: {
+                                        $el: $('#' + this.id).html("")
+                                    }
+                                   };
             this.processItems();
+
+        }
+
+
+        this.findPage = function(items, pageName) {
+            var self = this;
+            for (var i = 0; i < items.length; i++) {
+                var item = items[i];
+                if (item.type == "group") {
+                    if (item.name == pageName) {
+                        return {items: items, index: i};
+                    }
+                    var page = self.findPage(item.items, pageName);
+                    if (page) {
+                        return page;
+                    }
+                }
+                
+            }
+
+            return null;
+        };
+
+        this.clearPage = function() {
+            $('#' + this.id).html("");
+            this.pageStart = true;
         };
 
         this.uniquifyNames = function(items, names) {
@@ -162,11 +224,14 @@
                 // console.log("Current state:", this.state.itemState, this.state.itemState.group.$el);
 
                 if (this.state.itemState.i >= this.state.itemState.items.length) {
-                    if (this.state.itemStack.length > 0) {
+                    while (this.state.itemStack.length > 0) {
                         this.state.itemState = this.state.itemStack.pop();
-                    }
-                    else {
-                        return;
+                        if (this.state.itemState.i < this.state.itemState.items.length) {
+                            break;
+                        }
+                        else if (this.state.itemStack.length == 0) {
+                            return;
+                        }
                     }
                 }
 
@@ -176,11 +241,16 @@
                 var haveAnswer = typeof(this.state.answers[item.name]) != "undefined";
 
                 if (item.type == "group") {
-                    self.addGroup(item, self.pageStart);
+                    var rc = self.addGroup(item, self.pageStart);
+                    if (rc.stop) {
+                        return;
+                    }
                 }
                 else {
                     self.addQuestion(item, haveAnswer);
                 }
+
+                self.pageStart = false;
 
                 if (!haveAnswer && item.pause && item.type != "group") {
                     item.mustResume = true;
@@ -211,41 +281,47 @@
 
         // Add a new group
         this.addGroup = function(groupInfo, pageStart) {
+            var self = this;
             console.log("adding group:", groupInfo, this);
             var group = $.extend({}, groupInfo);
 
-            if (!pageStart && group.newPage) {
-                console.log("New page");
-                var footer = this.state.itemState.group.$el.$div({'class': 'footer'});
+            if (!pageStart && (group.newPage || group.lastGroup)) {
 
-                var prev   = footer.$div({'class': 'prev-page-link'}).
-                    $span("&lArr; test prev");
-                var next   = footer.$div({'class': 'next-page-link'}).
-                    $span(group.linkText + " &rArr;");
+                var footer = self.state.itemState.group.$el.$div({'class': 'footer'});
 
-                prev.bind("click", function(e) {
-                    History.back();
-                });
+                if (!self.state.pageGroup.firstGroup) {
+                    var prev   = footer.$div({'class': 'prev-page-link'}).
+                        $span("&lArr; " + self.state.prevGroup.linkText);
+                    prev.bind("click", function(e) {
+                        History.back();
+                    });
+                }
 
-                next.bind("click", function(e) {
-                    History.pushState({state:1}, "State 1", "?state=1"); // logs {state:1}, "State 1", "?state=1"
-                });
+                if (!group.lastGroup) {
+                    var next   = footer.$div({'class': 'next-page-link'}).
+                        $span("Continue to " + group.linkText + " &rArr;");
+                    next.bind("click", function(e) {
+                        History.pushState({name: group.name, prevGroup: self.state.pageGroup}, 
+                                          group.heading, "?page="+group.name);
+                    });
+                }
 
-
-                return;
+                return {stop: true};
             }
 
-            group.$el = this.state.itemState.group.$el.$div({id: "group-" + groupInfo.name, 
+            group.$el = self.state.itemState.group.$el.$div({id: "group-" + groupInfo.name, 
                                               'class': "group-" + groupInfo.name + " question-group"});
             if (group.items) {
-                this.state.itemStack.push(this.state.itemState);
-                this.state.itemState = {i: 0, 
+                self.state.itemStack.push(self.state.itemState);
+                self.state.itemState = {i: 0, 
                                         items: group.items,
                                         group: {
                                             $el: group.$el
                                         }
                                        };
             }
+
+            return {stop: false};
         };
 
         // Render the question
