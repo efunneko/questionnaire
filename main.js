@@ -163,7 +163,12 @@
                                    };
             this.processItems();
 
-        }
+        };
+
+        this.drawHeader = function() {
+            var header = $('#header');
+            
+        };
 
 
         this.findPage = function(items, pageName) {
