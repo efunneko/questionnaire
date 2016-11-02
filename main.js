@@ -78,8 +78,11 @@
         // Initialize 
         this.init = function (options) {
             var self = this;
+
             $.createHtml("configure", {installParentFunctions: true});
 
+            this.headerInit(options);
+            
             History.Adapter.bind(window,'statechange',
                                  function() {
                                      var state = History.getState(); 
@@ -95,9 +98,15 @@
                     self.focusedElement.select(); 
                 }, 0); 
             });
-
-
+            
             this.start(options);
+        };
+
+        this.headerInit = function(options) {
+            $("#header").$div(options.data.title, {"class": "header-title"});
+            var div = $("#header").$div({"class": "header-score-container"});
+            div.$span(options.data.scoreTitle || "Your Score", {"class": "header-score-title"});
+            div.$span(10000000, {id: "header-score", "class": "header-score"});
         };
 
         // Start the whole process
@@ -135,6 +144,8 @@
 
             var group = this.data.items[0];
             group.firstGroup = true;
+            
+            this.gotoPage({name: group.name});
             History.pushState({name: group.name}, group.heading, "?page="+group.name);
         };
 
@@ -211,7 +222,7 @@
                     }
                 }
                 names[name] = true;
-                if (val.type == "group") {
+                if (val.items) {
                     self.uniquifyNames(val.items, names);
                 }
                 else if (val.type == "checkbox") {
@@ -421,7 +432,7 @@
                 $.each(question.items, function(i, val) {
                     var row = table.$tr();
                     row.$th(val.text);
-                    self.addNumEntry(val, typeInfo, row.$td().$div(), haveAnswer); 
+                    self.addNumEntry(val, typeInfo, row.$td().$div(), typeof(self.state.answers[val.name]) != undefined); 
                 });
                 
             }
@@ -462,10 +473,13 @@
         
         // Called whenever there is a new answer for a question
         this.processAnswer = function(question, val) {
-            console.log(question, val);
             this.state.answers[question.name] = val;
             question.answer = val;
-            
+
+            var score = this.updateScore(this.data.items);
+            $("#header-score").text(score.toFixed(0));
+            console.log("Score: ", score);
+
             if (question.templateName) {
                 if (typeof(val) != "undefined") {
                     this.state.templateVars[question.templateName] = val;
@@ -481,6 +495,37 @@
                 this.processItems();
             }
             
+        };
+
+        this.updateScore = function(items) {
+
+            // Go through all the items and add up the score
+            var self = this;
+            var score = 0;
+            $.each(items, function(i, item) {
+                var name = item.name;
+                var val  = self.state.answers[name];
+                if (typeof(val) != "undefined") {
+                    if (Array.isArray(item.score)) {
+                        var funcName = item.score[0];
+                        if (self.data.scoreFuncs[funcName]) {
+                            score += self.data.scoreFuncs[funcName](val, item.score[1], item.score[2]);
+                        }
+                    }
+                    else if (typeof(item.score) == "function") {
+                        score += item.score(item.answer);
+                    }
+                }
+                if (item.items) {
+                    score += self.updateScore(item.items);
+                }
+                else if (item.type == "checkbox") {
+                    score += self.updateScore(item.options);
+                }
+            });
+
+            return score;
+ 
         };
 
         // Called to substitute 

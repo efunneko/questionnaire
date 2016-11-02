@@ -43,6 +43,35 @@ var questionData = {
 
     },
 
+    scoreFuncs: {
+        volumeFunc: function(val, inRanges) {
+            var score = 0;
+            var ranges = inRanges || [[4,10], [3,20], [2,30], [1,40]];
+
+            var weight = ranges[0][0];
+            for (var i = 0; i < ranges.length; i++) {
+                if (ranges[i][1] != -1 && val > ranges[i][1]) {
+                    score += ranges[i][1] * weight;
+                    weight = ranges[i+1][0];
+                    val -= ranges[i][1];
+                }
+                else {
+                    score += val * weight;
+                    val = 0;
+                }
+            }
+
+            if (val > 0) {
+                score += val * (weight < 0 ? weight : 1);
+            }
+            
+            return score;
+        } 
+    },
+
+    title: "Header Text",
+    scoreTitle: "Score",
+
     items: [
         {  
             type: "group",
@@ -56,17 +85,9 @@ var questionData = {
                     text: "Hi there!",
                 },
                 {
-                    type: "inputBar",
-                    name: "nickname",
-                    text: "What would you like me to call you?",
-                    placeholder: "firstname/nickname/intials",
-                    pause: true,
-                    templateName: "nickname"
-                },
-                {
                     type: "mfo",
                     name: "gender",
-                    text: "Hi $nickname! What do you consider yourself?",
+                    text: "What do you consider yourself?",
                     pause: true,
                     templateName: "gender"
                 },
@@ -84,14 +105,17 @@ var questionData = {
                         {
                             name: "volume-male-one",
                             text: "This is question 1",
+                            score: ["volumeFunc", [[3,15], [2,20], [1,-1]]]
                         },
                         {
                             name: "volume-male-two",
                             text: "This is question 2",
+                            score: ["volumeFunc", [[5,10], [3,10], [2,20], [1,-1]]]
                         },
                         {
-                            name: "volume-male-one",
+                            name: "volume-male-three",
                             text: "This is question 3",
+                            score: ["volumeFunc", [[10,8], [8,10], [5,16], [3,20], [1,-1]]]
                         },
                     ]
                 },
